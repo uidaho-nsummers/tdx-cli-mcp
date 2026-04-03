@@ -10,7 +10,13 @@
 	"peerDependencies": {
 		"typescript": "^5"
 	},
+	"scripts": {
+		"test": "bun test tests/config.test.ts tests/auth/ tests/api/ tests/tools/ tests/server.test.ts && bun test tests/qa/",
+		"test:unit": "bun test tests/config.test.ts tests/auth/ tests/api/ tests/tools/ tests/server.test.ts",
+		"test:qa": "bun test tests/qa/"
+	},
 	"dependencies": {
+		"@cfworker/json-schema": "^4.1.1",
 		"@modelcontextprotocol/server": "^2.0.0-alpha.2",
 		"zod": "^4.3.6"
 	}

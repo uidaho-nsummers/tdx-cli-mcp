@@ -4,12 +4,12 @@ import {
 	beforeAll,
 	describe,
 	expect,
-	mock,
 	test,
-} from "bun:test";
+	vi,
+} from "vitest";
 
 // Mock config
-mock.module("../../src/config.ts", () => ({
+vi.mock("../../src/config.ts", () => ({
 	getConfig: () => ({
 		TDX_BASE_URL: "https://tdx.example.com/TDWebApi/api",
 		TDX_BEID: "test-beid",
@@ -38,7 +38,7 @@ const originalFetch = globalThis.fetch;
 function setupFetchMock() {
 	const authToken = fixtures.validAuthToken();
 
-	globalThis.fetch = mock(
+	globalThis.fetch = vi.fn(
 		async (input: string | URL | Request, init?: RequestInit) => {
 			const url =
 				typeof input === "string"
@@ -159,7 +159,7 @@ function setupFetchMock() {
 
 			return new Response("Not Found", { status: 404 });
 		},
-	) as typeof fetch;
+	) as unknown as typeof fetch;
 }
 
 beforeAll(() => {
@@ -199,7 +199,7 @@ async function callToolAndGetResult(
 	};
 	expect(result.content).toBeArray();
 	expect(result.content[0]?.type).toBe("text");
-	return JSON.parse(result.content[0]?.text);
+	return JSON.parse((result.content[0] as { text: string }).text);
 }
 
 describe("Tool invocations with realistic TDX responses", () => {
@@ -288,7 +288,7 @@ describe("Tool invocations with realistic TDX responses", () => {
 		const result = response.result as {
 			content: Array<{ type: string; text: string }>;
 		};
-		const data = JSON.parse(result.content[0]?.text);
+		const data = JSON.parse((result.content[0] as { text: string }).text);
 
 		expect(data.ID).toBe(12345);
 		expect(data.StatusName).toBe("Resolved");
@@ -440,7 +440,9 @@ describe("Tool invocations with realistic TDX responses", () => {
 			expect(result.content.length).toBeGreaterThan(0);
 			expect(result.content[0]?.type).toBe("text");
 			// Verify the text is valid JSON
-			expect(() => JSON.parse(result.content[0]?.text)).not.toThrow();
+			expect(() =>
+				JSON.parse((result.content[0] as { text: string }).text),
+			).not.toThrow();
 		}
 	});
 

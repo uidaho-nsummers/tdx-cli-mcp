@@ -1,7 +1,7 @@
-import { beforeEach, describe, expect, mock, test } from "bun:test";
+import { beforeEach, describe, expect, test, vi } from "vitest";
 
 // Mock config
-mock.module("../../src/config.ts", () => ({
+vi.mock("../../src/config.ts", () => ({
 	getConfig: () => ({
 		TDX_BASE_URL: "https://tdx.example.com/TDWebApi/api",
 		TDX_BEID: "test-beid",
@@ -13,16 +13,18 @@ mock.module("../../src/config.ts", () => ({
 }));
 
 // Mock auth
-const mockGetAuthToken = mock(() => Promise.resolve("mock-token"));
-mock.module("../../src/auth/client.ts", () => ({
+const { mockGetAuthToken } = vi.hoisted(() => ({
+	mockGetAuthToken: vi.fn(() => Promise.resolve("mock-token")),
+}));
+vi.mock("../../src/auth/client.ts", () => ({
 	getAuthToken: mockGetAuthToken,
 }));
 
 // Mock rate limiter to avoid long waits in tests
-mock.module("../../src/api/rate-limiter.ts", () => ({
-	waitIfNeeded: mock(() => Promise.resolve()),
-	recordCall: mock(() => {}),
-	getRetryWaitMs: mock(() => 10), // Very short retry wait for tests
+vi.mock("../../src/api/rate-limiter.ts", () => ({
+	waitIfNeeded: vi.fn(() => Promise.resolve()),
+	recordCall: vi.fn(() => {}),
+	getRetryWaitMs: vi.fn(() => 10), // Very short retry wait for tests
 }));
 
 // Store original fetch
@@ -30,23 +32,24 @@ const originalFetch = globalThis.fetch;
 
 describe("error scenarios", () => {
 	beforeEach(() => {
+		vi.resetModules();
 		globalThis.fetch = originalFetch;
 		mockGetAuthToken.mockImplementation(() => Promise.resolve("mock-token"));
 	});
 
 	describe("401 triggers error", () => {
 		test("throws TdxApiError on 401 response", async () => {
-			globalThis.fetch = mock(() =>
+			globalThis.fetch = vi.fn(() =>
 				Promise.resolve(
 					new Response("Unauthorized", {
 						status: 401,
 						statusText: "Unauthorized",
 					}),
 				),
-			) as typeof fetch;
+			) as unknown as typeof fetch;
 
 			const { tdxRequest, TdxApiError } = await import(
-				`../../src/api/client.ts?t=${Date.now()}-401`
+				"../../src/api/client.ts"
 			);
 			try {
 				await tdxRequest({ path: "/test-401" });
@@ -61,7 +64,7 @@ describe("error scenarios", () => {
 	describe("429 triggers rate limit backoff and retry", () => {
 		test("retries on 429 and succeeds on subsequent attempt", async () => {
 			let callCount = 0;
-			globalThis.fetch = mock(() => {
+			globalThis.fetch = vi.fn(() => {
 				callCount++;
 				if (callCount === 1) {
 					return Promise.resolve(
@@ -74,29 +77,25 @@ describe("error scenarios", () => {
 				return Promise.resolve(
 					new Response(JSON.stringify({ ok: true }), { status: 200 }),
 				);
-			}) as typeof fetch;
+			}) as unknown as typeof fetch;
 
-			const { tdxRequest } = await import(
-				`../../src/api/client.ts?t=${Date.now()}-429`
-			);
+			const { tdxRequest } = await import("../../src/api/client.ts");
 			const result = await tdxRequest({ path: "/test-429-retry" });
 			expect(result.data).toEqual({ ok: true });
 			expect(callCount).toBe(2);
 		});
 
 		test("throws after max retries on persistent 429", async () => {
-			globalThis.fetch = mock(() =>
+			globalThis.fetch = vi.fn(() =>
 				Promise.resolve(
 					new Response("Rate Limited", {
 						status: 429,
 						statusText: "Too Many Requests",
 					}),
 				),
-			) as typeof fetch;
+			) as unknown as typeof fetch;
 
-			const { tdxRequest } = await import(
-				`../../src/api/client.ts?t=${Date.now()}-429-persist`
-			);
+			const { tdxRequest } = await import("../../src/api/client.ts");
 			await expect(tdxRequest({ path: "/test-429-exhaust" })).rejects.toThrow(
 				"429",
 			);
@@ -105,17 +104,17 @@ describe("error scenarios", () => {
 
 	describe("500 returns meaningful error", () => {
 		test("throws TdxApiError with status and body on 500", async () => {
-			globalThis.fetch = mock(() =>
+			globalThis.fetch = vi.fn(() =>
 				Promise.resolve(
 					new Response("Internal Server Error details", {
 						status: 500,
 						statusText: "Internal Server Error",
 					}),
 				),
-			) as typeof fetch;
+			) as unknown as typeof fetch;
 
 			const { tdxRequest, TdxApiError } = await import(
-				`../../src/api/client.ts?t=${Date.now()}-500`
+				"../../src/api/client.ts"
 			);
 			try {
 				await tdxRequest({ path: "/test-500" });
@@ -131,24 +130,20 @@ describe("error scenarios", () => {
 
 	describe("malformed JSON response handling", () => {
 		test("throws on malformed JSON in response body", async () => {
-			globalThis.fetch = mock(() =>
+			globalThis.fetch = vi.fn(() =>
 				Promise.resolve(new Response("this is not json{{{", { status: 200 })),
-			) as typeof fetch;
+			) as unknown as typeof fetch;
 
-			const { tdxRequest } = await import(
-				`../../src/api/client.ts?t=${Date.now()}-badjson`
-			);
+			const { tdxRequest } = await import("../../src/api/client.ts");
 			await expect(tdxRequest({ path: "/test-badjson" })).rejects.toThrow();
 		});
 
 		test("handles empty response body gracefully", async () => {
-			globalThis.fetch = mock(() =>
+			globalThis.fetch = vi.fn(() =>
 				Promise.resolve(new Response("", { status: 200 })),
-			) as typeof fetch;
+			) as unknown as typeof fetch;
 
-			const { tdxRequest } = await import(
-				`../../src/api/client.ts?t=${Date.now()}-empty`
-			);
+			const { tdxRequest } = await import("../../src/api/client.ts");
 			const result = await tdxRequest({ path: "/test-empty" });
 			expect(result.data).toBeUndefined();
 		});
@@ -156,13 +151,11 @@ describe("error scenarios", () => {
 
 	describe("network timeout handling", () => {
 		test("propagates fetch errors (network failure)", async () => {
-			globalThis.fetch = mock(() =>
+			globalThis.fetch = vi.fn(() =>
 				Promise.reject(new TypeError("Failed to fetch")),
-			) as typeof fetch;
+			) as unknown as typeof fetch;
 
-			const { tdxRequest } = await import(
-				`../../src/api/client.ts?t=${Date.now()}-network`
-			);
+			const { tdxRequest } = await import("../../src/api/client.ts");
 			await expect(tdxRequest({ path: "/test-network" })).rejects.toThrow(
 				"Failed to fetch",
 			);

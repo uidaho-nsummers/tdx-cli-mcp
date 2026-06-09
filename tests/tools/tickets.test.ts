@@ -1,4 +1,4 @@
-import { describe, expect, mock, test } from "bun:test";
+import { describe, expect, test, vi } from "vitest";
 import {
 	ticketCreateInputSchema,
 	ticketFeedPostInputSchema,
@@ -8,7 +8,7 @@ import {
 } from "../../src/tools/schemas/tickets.ts";
 
 // Mock config
-mock.module("../../src/config.ts", () => ({
+vi.mock("../../src/config.ts", () => ({
 	getConfig: () => ({
 		TDX_BASE_URL: "https://tdx.example.com/TDWebApi/api",
 		TDX_BEID: "test-beid",
@@ -20,13 +20,17 @@ mock.module("../../src/config.ts", () => ({
 }));
 
 // Mock the API client
-const mockTdxRequest = mock(() =>
-	Promise.resolve({
-		data: { ID: 1, Title: "Test Ticket" },
-		headers: new Headers(),
-	}),
-);
-mock.module("../../src/api/client.ts", () => ({
+const { mockTdxRequest } = vi.hoisted(() => ({
+	mockTdxRequest: vi.fn<
+		(...args: unknown[]) => Promise<{ data: unknown; headers: Headers }>
+	>(() =>
+		Promise.resolve({
+			data: { ID: 1, Title: "Test Ticket" },
+			headers: new Headers(),
+		}),
+	),
+}));
+vi.mock("../../src/api/client.ts", () => ({
 	tdxRequest: mockTdxRequest,
 	TdxApiError: class TdxApiError extends Error {
 		constructor(
@@ -40,8 +44,8 @@ mock.module("../../src/api/client.ts", () => ({
 }));
 
 // Mock auth
-mock.module("../../src/auth/client.ts", () => ({
-	getAuthToken: mock(() => Promise.resolve("mock-token")),
+vi.mock("../../src/auth/client.ts", () => ({
+	getAuthToken: vi.fn(() => Promise.resolve("mock-token")),
 }));
 
 describe("ticket tool handlers", () => {

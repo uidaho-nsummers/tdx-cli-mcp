@@ -1,4 +1,5 @@
-import { describe, expect, test } from "bun:test";
+import { describe, expect, test } from "vitest";
+import { z } from "zod";
 
 const VALID_ENV = {
 	TDX_BASE_URL: "https://tdx.example.com/TDWebApi/api",
@@ -10,9 +11,7 @@ const VALID_ENV = {
 };
 
 function loadConfigFromEnv(env: Record<string, string>) {
-	// We import the zod schema logic inline to test it without module-level side effects
-	const { z } = require("zod");
-
+	// We define the zod schema logic inline to test it without module-level side effects
 	const configSchema = z.object({
 		TDX_BASE_URL: z.string().url(),
 		TDX_BEID: z.string().min(1),
@@ -38,7 +37,7 @@ function loadConfigFromEnv(env: Record<string, string>) {
 	if (!result.success) {
 		const errors = result.error.issues
 			.map(
-				(i: { path: string[]; message: string }) =>
+				(i: { path: PropertyKey[]; message: string }) =>
 					`  ${i.path.join(".")}: ${i.message}`,
 			)
 			.join("\n");

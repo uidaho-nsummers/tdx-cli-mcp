@@ -25,8 +25,7 @@ Create an agent team with 4 teammates:
 
 ## TDX Web API Reference
 
-- Docs: https://rollins.teamdynamix.com/TDWebApi/
-- Canonical docs: https://solutions.teamdynamix.com/TDWebApi/
+- Docs: https://solutions.teamdynamix.com/TDWebApi/
 - REST API, JSON only
 - Base URL pattern: `https://{instance}.teamdynamix.com/TDWebApi/api/...`
 - Existing Python reference library: https://github.com/cedarville-university/tdxlib
@@ -119,7 +118,7 @@ tdx-mcp-server/
 ## Configuration (Environment Variables)
 
 ```
-TDX_BASE_URL=https://rollins.teamdynamix.com/TDWebApi/api
+TDX_BASE_URL=https://yourinstance.teamdynamix.com/TDWebApi/api
 TDX_BEID=<admin BE ID>
 TDX_WEB_SERVICES_KEY=<admin web services key>
 TDX_TICKETING_APP_ID=<ticketing app ID>

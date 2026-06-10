@@ -5,9 +5,9 @@ import {
 	ticketGetInputSchema,
 	ticketSearchInputSchema,
 	ticketUpdateInputSchema,
-} from "../../src/tools/schemas/tickets.ts";
+} from "../../packages/core/src/schemas/tickets.ts";
 
-// Mock the API client
+// Mock the core API client and config used by the operations
 const { mockTdxRequest } = vi.hoisted(() => ({
 	mockTdxRequest: vi.fn<
 		(...args: unknown[]) => Promise<{ data: unknown; headers: Headers }>
@@ -19,7 +19,11 @@ const { mockTdxRequest } = vi.hoisted(() => ({
 	),
 }));
 
-vi.mock("@tdx/core", () => ({
+vi.mock("../../packages/core/src/api/client.ts", () => ({
+	tdxRequest: mockTdxRequest,
+}));
+
+vi.mock("../../packages/core/src/config.ts", () => ({
 	getConfig: () => ({
 		TDX_BASE_URL: "https://tdx.example.com/TDWebApi/api",
 		TDX_BEID: "test-beid",
@@ -28,31 +32,21 @@ vi.mock("@tdx/core", () => ({
 		TDX_ASSET_APP_ID: 10,
 		TDX_KB_APP_ID: 20,
 	}),
-	tdxRequest: mockTdxRequest,
-	TdxApiError: class TdxApiError extends Error {
-		constructor(
-			public status: number,
-			public statusText: string,
-			public body: string,
-		) {
-			super(`TDX API error ${status}: ${statusText}`);
-		}
-	},
-	getAuthToken: vi.fn(() => Promise.resolve("mock-token")),
-	clearAuthToken: vi.fn(),
 }));
 
-describe("ticket tool handlers", () => {
+describe("ticket operations", () => {
 	describe("ticketsSearch", () => {
-		test("calls tdxRequest with correct method and path", async () => {
+		test("calls tdxRequest with correct method and path and returns raw data", async () => {
 			mockTdxRequest.mockImplementation(() =>
 				Promise.resolve({ data: [{ ID: 1 }], headers: new Headers() }),
 			);
 
-			const { ticketsSearch } = await import("../../src/tools/tickets.ts");
+			const { ticketsSearch } = await import(
+				"../../packages/core/src/operations/tickets.ts"
+			);
 			const result = await ticketsSearch({ MaxResults: 10 });
 
-			expect(result.content[0]?.type).toBe("text");
+			expect(result).toEqual([{ ID: 1 }]);
 			expect(mockTdxRequest).toHaveBeenCalledWith({
 				method: "POST",
 				path: "/42/tickets/search",
@@ -65,7 +59,9 @@ describe("ticket tool handlers", () => {
 				Promise.resolve({ data: [], headers: new Headers() }),
 			);
 
-			const { ticketsSearch } = await import("../../src/tools/tickets.ts");
+			const { ticketsSearch } = await import(
+				"../../packages/core/src/operations/tickets.ts"
+			);
 			await ticketsSearch({
 				SearchText: "test",
 				StatusIDs: [1, 2],
@@ -87,7 +83,7 @@ describe("ticket tool handlers", () => {
 	});
 
 	describe("ticketsGet", () => {
-		test("calls tdxRequest with ticket ID in path", async () => {
+		test("calls tdxRequest with ticket ID in path and returns raw object", async () => {
 			mockTdxRequest.mockImplementation(() =>
 				Promise.resolve({
 					data: { ID: 123, Title: "Bug" },
@@ -95,14 +91,15 @@ describe("ticket tool handlers", () => {
 				}),
 			);
 
-			const { ticketsGet } = await import("../../src/tools/tickets.ts");
-			const result = await ticketsGet({ id: 123 });
+			const { ticketsGet } = await import(
+				"../../packages/core/src/operations/tickets.ts"
+			);
+			const result = (await ticketsGet({ id: 123 })) as { ID: number };
 
 			expect(mockTdxRequest).toHaveBeenCalledWith({
 				path: "/42/tickets/123",
 			});
-			const parsed = JSON.parse((result.content[0] as { text: string }).text);
-			expect(parsed.ID).toBe(123);
+			expect(result.ID).toBe(123);
 		});
 	});
 
@@ -112,7 +109,9 @@ describe("ticket tool handlers", () => {
 				Promise.resolve({ data: { ID: 999 }, headers: new Headers() }),
 			);
 
-			const { ticketsCreate } = await import("../../src/tools/tickets.ts");
+			const { ticketsCreate } = await import(
+				"../../packages/core/src/operations/tickets.ts"
+			);
 			await ticketsCreate({
 				TypeID: 1,
 				Title: "New Ticket",
@@ -144,7 +143,9 @@ describe("ticket tool handlers", () => {
 				Promise.resolve({ data: { ID: 123 }, headers: new Headers() }),
 			);
 
-			const { ticketsUpdate } = await import("../../src/tools/tickets.ts");
+			const { ticketsUpdate } = await import(
+				"../../packages/core/src/operations/tickets.ts"
+			);
 			await ticketsUpdate({
 				id: 123,
 				patches: [{ op: "replace", path: "/Title", value: "Updated" }],
@@ -161,7 +162,7 @@ describe("ticket tool handlers", () => {
 	});
 
 	describe("ticketsFeedGet", () => {
-		test("gets feed for ticket ID", async () => {
+		test("gets feed for ticket ID and returns raw data", async () => {
 			mockTdxRequest.mockImplementation(() =>
 				Promise.resolve({
 					data: [{ ID: 1, Body: "Comment" }],
@@ -169,13 +170,15 @@ describe("ticket tool handlers", () => {
 				}),
 			);
 
-			const { ticketsFeedGet } = await import("../../src/tools/tickets.ts");
+			const { ticketsFeedGet } = await import(
+				"../../packages/core/src/operations/tickets.ts"
+			);
 			const result = await ticketsFeedGet({ id: 456 });
 
 			expect(mockTdxRequest).toHaveBeenCalledWith({
 				path: "/42/tickets/456/feed",
 			});
-			expect(result.content[0]?.type).toBe("text");
+			expect(result).toEqual([{ ID: 1, Body: "Comment" }]);
 		});
 	});
 
@@ -185,7 +188,9 @@ describe("ticket tool handlers", () => {
 				Promise.resolve({ data: { ID: 1 }, headers: new Headers() }),
 			);
 
-			const { ticketsFeedPost } = await import("../../src/tools/tickets.ts");
+			const { ticketsFeedPost } = await import(
+				"../../packages/core/src/operations/tickets.ts"
+			);
 			await ticketsFeedPost({
 				id: 456,
 				Comments: "Hello world",

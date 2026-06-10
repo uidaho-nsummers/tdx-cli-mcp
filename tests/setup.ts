@@ -27,8 +27,8 @@ expect.extend({
 });
 
 declare module "vitest" {
-	// biome-ignore lint/suspicious/noExplicitAny: must match Vitest's `Matchers<R = any>` signature for declaration merging
-	interface Matchers<_R = any> {
+	// biome-ignore lint/suspicious/noExplicitAny: must match Vitest's `Matchers<T = any>` signature for declaration merging
+	interface Matchers<T = any> {
 		toBeArray(): void;
 		toBeString(): void;
 	}

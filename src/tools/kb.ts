@@ -1,7 +1,6 @@
 import type { CallToolResult } from "@modelcontextprotocol/server";
+import { getConfig, tdxRequest } from "@tdx/core";
 import type { z } from "zod";
-import { tdxRequest } from "../api/client.js";
-import { getConfig } from "../config.js";
 import type { kbGetInputSchema, kbSearchInputSchema } from "./schemas/kb.js";
 import { textResult } from "./utils.js";
 

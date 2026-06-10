@@ -1,5 +1,5 @@
 import type { CallToolResult } from "@modelcontextprotocol/server";
-import { tdxRequest } from "../api/client.js";
+import { tdxRequest } from "@tdx/core";
 import { textResult } from "./utils.js";
 
 export async function applicationsList(): Promise<CallToolResult> {

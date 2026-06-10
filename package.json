@@ -23,6 +23,7 @@
 		"lint": "biome check src/ tests/ packages/"
 	},
 	"dependencies": {
+		"@tdx/core": "0.0.0",
 		"@cfworker/json-schema": "^4.1.1",
 		"@modelcontextprotocol/server": "^2.0.0-alpha.2",
 		"dotenv": "^17.4.2",

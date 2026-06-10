@@ -97,13 +97,13 @@ Tests run under Vitest, which isolates module mocks per file natively.
 
 ## Workspace scaffold
 
-This repository uses npm workspaces with package placeholders for the planned library-first refactor:
+This repository uses npm workspaces for the planned library-first refactor:
 
-- `packages/core` — `@tdx/core`, reserved for shared TeamDynamix API/auth/domain logic
+- `packages/core` — `@tdx/core`, shared TeamDynamix config, auth, API client, and rate-limit logic
 - `packages/cli` — `tdx`, reserved for the future command-line interface
 - `packages/mcp` — README-only stub for the future MCP wrapper package
 
-The current MCP server implementation still lives in root `src/` and `tests/`. Future refactor issues will move domain logic into `@tdx/core` and rebuild MCP as a thin package wrapper.
+The current MCP server implementation still lives in root `src/` and `tests/`. It consumes shared client primitives from `@tdx/core`; future refactor issues will move domain operations into core and rebuild MCP as a thin package wrapper.
 
 ## Project structure
 
@@ -111,7 +111,11 @@ The current MCP server implementation still lives in root `src/` and `tests/`. F
 packages/
   core/
     package.json        # @tdx/core workspace package scaffold
-    src/index.ts        # Minimal package entrypoint
+    src/index.ts        # Core public API entrypoint
+    src/config.ts       # Env var loading with Zod validation
+    src/auth/client.ts  # TDX auth - JWT caching, proactive refresh
+    src/api/client.ts   # Fetch wrapper - auth headers, retry on 429
+    src/api/rate-limiter.ts # Client-side sliding window rate limiter
     tsconfig.json       # TypeScript project reference target
   cli/
     package.json        # tdx workspace package scaffold with bin metadata
@@ -122,13 +126,13 @@ packages/
 src/
   index.ts              # Entry point — stdio transport, graceful shutdown
   server.ts             # MCP server — tool registration
-  config.ts             # Env var loading with Zod validation
+  config.ts             # Transitional re-export from @tdx/core
   auth/
-    client.ts           # TDX auth — JWT caching, proactive refresh
+    client.ts           # Transitional re-export from @tdx/core
     schemas.ts          # Auth Zod schemas
   api/
-    client.ts           # Fetch wrapper — auth headers, retry on 429
-    rate-limiter.ts     # Client-side sliding window rate limiter
+    client.ts           # Transitional re-export from @tdx/core
+    rate-limiter.ts     # Transitional re-export from @tdx/core
   tools/
     tickets.ts          # Ticket tool handlers
     assets.ts           # Asset tool handlers

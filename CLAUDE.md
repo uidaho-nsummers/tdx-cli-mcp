@@ -5,9 +5,8 @@ MCP server wrapping the TeamDynamix Web API. Bun runtime, TypeScript strict mode
 ## Commands
 
 - `bun run src/index.ts` — Start the MCP server (stdio transport)
-- `bun run test` — Run all tests (unit + QA, separate processes)
-- `bun run test:unit` — Unit tests only
-- `bun run test:qa` — QA/integration tests only
+- `bun run test` — Run all tests (Vitest)
+- `bun run test:watch` — Run tests in watch mode
 - `bunx biome check --write src/ tests/` — Format and lint
 
 ## Runtime
@@ -15,7 +14,7 @@ MCP server wrapping the TeamDynamix Web API. Bun runtime, TypeScript strict mode
 Use Bun, not Node.js. Bun auto-loads `.env` — no dotenv.
 
 - `bun <file>` not `node <file>`
-- `bun test` not `jest`/`vitest`
+- `bun run test` runs Vitest (not `bun test` directly)
 - `bun install` not `npm install`
 - `bunx <pkg>` not `npx <pkg>`
 
@@ -42,16 +41,17 @@ Use Bun, not Node.js. Bun auto-loads `.env` — no dotenv.
 
 ## Testing
 
-Tests use `bun:test`. Unit and QA tests MUST run in separate `bun test` processes because Bun's `mock.module` leaks across files in the same process.
+Tests use Vitest. Vitest isolates module mocks per file natively, so unit and QA tests run together in a single `vitest run`.
 
 - `tests/` — Unit tests, mirror `src/` structure
 - `tests/qa/` — End-to-end MCP server tests with in-memory transport
 - `tests/fixtures/` — Realistic TDX API response data
+- `tests/setup.ts` — Registers custom `toBeArray()`/`toBeString()` matchers
 
 When mocking config in tests, mock `getConfig` as a function:
 
 ```ts
-mock.module("../../src/config.ts", () => ({
+vi.mock("../../src/config.ts", () => ({
   getConfig: () => ({
     TDX_BASE_URL: "https://tdx.example.com/TDWebApi/api",
     TDX_BEID: "test-beid",

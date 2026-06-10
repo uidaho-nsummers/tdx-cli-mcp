@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, mock, test } from "bun:test";
+import { beforeEach, describe, expect, test, vi } from "vitest";
 
 // Helper to create a valid JWT with a given exp timestamp
 function makeJwt(exp: number): string {
@@ -8,7 +8,7 @@ function makeJwt(exp: number): string {
 }
 
 // Mock the config module BEFORE any imports that depend on it
-mock.module("../../src/config.ts", () => ({
+vi.mock("../../src/config.ts", () => ({
 	getConfig: () => ({
 		TDX_BASE_URL: "https://tdx.example.com/TDWebApi/api",
 		TDX_BEID: "test-beid",
@@ -29,10 +29,9 @@ describe("auth client", () => {
 	});
 
 	async function freshGetAuthToken(): Promise<() => Promise<string>> {
-		// Use a cache-busting query param to get a fresh module with fresh state
-		const mod = await import(
-			`../../src/auth/client.ts?t=${Date.now()}-${Math.random()}`
-		);
+		// Reset the module registry to get a fresh module with fresh state
+		vi.resetModules();
+		const mod = await import("../../src/auth/client.ts");
 		return mod.getAuthToken;
 	}
 
@@ -41,9 +40,9 @@ describe("auth client", () => {
 			const futureExp = Math.floor(Date.now() / 1000) + 3600;
 			const token = makeJwt(futureExp);
 
-			globalThis.fetch = mock(() =>
+			globalThis.fetch = vi.fn(() =>
 				Promise.resolve(new Response(token, { status: 200 })),
-			) as typeof fetch;
+			) as unknown as typeof fetch;
 
 			const getAuthToken = await freshGetAuthToken();
 			const result = await getAuthToken();
@@ -54,16 +53,19 @@ describe("auth client", () => {
 			const futureExp = Math.floor(Date.now() / 1000) + 3600;
 			const token = makeJwt(futureExp);
 
-			const mockFetch = mock(() =>
+			const mockFetch = vi.fn(() =>
 				Promise.resolve(new Response(token, { status: 200 })),
 			);
-			globalThis.fetch = mockFetch as typeof fetch;
+			globalThis.fetch = mockFetch as unknown as typeof fetch;
 
 			const getAuthToken = await freshGetAuthToken();
 			await getAuthToken();
 
 			expect(mockFetch).toHaveBeenCalledTimes(1);
-			const [url, opts] = mockFetch.mock.calls[0] as [string, RequestInit];
+			const [url, opts] = mockFetch.mock.calls[0] as unknown as [
+				string,
+				RequestInit,
+			];
 			expect(url).toBe("https://tdx.example.com/TDWebApi/api/auth/loginadmin");
 			expect(opts.method).toBe("POST");
 			expect(JSON.parse(opts.body as string)).toEqual({
@@ -78,10 +80,10 @@ describe("auth client", () => {
 			const futureExp = Math.floor(Date.now() / 1000) + 3600;
 			const token = makeJwt(futureExp);
 
-			const mockFetch = mock(() =>
+			const mockFetch = vi.fn(() =>
 				Promise.resolve(new Response(token, { status: 200 })),
 			);
-			globalThis.fetch = mockFetch as typeof fetch;
+			globalThis.fetch = mockFetch as unknown as typeof fetch;
 
 			const getAuthToken = await freshGetAuthToken();
 			const first = await getAuthToken();
@@ -104,11 +106,11 @@ describe("auth client", () => {
 			const farToken = makeJwt(farExp);
 
 			let callCount = 0;
-			globalThis.fetch = mock(() => {
+			globalThis.fetch = vi.fn(() => {
 				callCount++;
 				const t = callCount === 1 ? nearToken : farToken;
 				return Promise.resolve(new Response(t, { status: 200 }));
-			}) as typeof fetch;
+			}) as unknown as typeof fetch;
 
 			const getAuthToken = await freshGetAuthToken();
 
@@ -124,37 +126,37 @@ describe("auth client", () => {
 
 	describe("login failure handling", () => {
 		test("throws on 401 response", async () => {
-			globalThis.fetch = mock(() =>
+			globalThis.fetch = vi.fn(() =>
 				Promise.resolve(
 					new Response("Unauthorized", {
 						status: 401,
 						statusText: "Unauthorized",
 					}),
 				),
-			) as typeof fetch;
+			) as unknown as typeof fetch;
 
 			const getAuthToken = await freshGetAuthToken();
 			await expect(getAuthToken()).rejects.toThrow("Auth failed: 401");
 		});
 
 		test("throws on 500 response", async () => {
-			globalThis.fetch = mock(() =>
+			globalThis.fetch = vi.fn(() =>
 				Promise.resolve(
 					new Response("Server Error", {
 						status: 500,
 						statusText: "Internal Server Error",
 					}),
 				),
-			) as typeof fetch;
+			) as unknown as typeof fetch;
 
 			const getAuthToken = await freshGetAuthToken();
 			await expect(getAuthToken()).rejects.toThrow("Auth failed: 500");
 		});
 
 		test("throws on empty token response", async () => {
-			globalThis.fetch = mock(() =>
+			globalThis.fetch = vi.fn(() =>
 				Promise.resolve(new Response("", { status: 200 })),
-			) as typeof fetch;
+			) as unknown as typeof fetch;
 
 			const getAuthToken = await freshGetAuthToken();
 			await expect(getAuthToken()).rejects.toThrow("Auth returned empty token");
@@ -163,9 +165,9 @@ describe("auth client", () => {
 
 	describe("malformed JWT handling", () => {
 		test("throws on JWT with wrong number of parts", async () => {
-			globalThis.fetch = mock(() =>
+			globalThis.fetch = vi.fn(() =>
 				Promise.resolve(new Response("not.a.valid.jwt.token", { status: 200 })),
-			) as typeof fetch;
+			) as unknown as typeof fetch;
 
 			const getAuthToken = await freshGetAuthToken();
 			await expect(getAuthToken()).rejects.toThrow();
@@ -176,20 +178,20 @@ describe("auth client", () => {
 			const payload = btoa(JSON.stringify({ sub: "user" })); // no exp
 			const badToken = `${header}.${payload}.sig`;
 
-			globalThis.fetch = mock(() =>
+			globalThis.fetch = vi.fn(() =>
 				Promise.resolve(new Response(badToken, { status: 200 })),
-			) as typeof fetch;
+			) as unknown as typeof fetch;
 
 			const getAuthToken = await freshGetAuthToken();
 			await expect(getAuthToken()).rejects.toThrow("JWT missing exp claim");
 		});
 
 		test("throws on JWT with non-base64 payload", async () => {
-			globalThis.fetch = mock(() =>
+			globalThis.fetch = vi.fn(() =>
 				Promise.resolve(
 					new Response("a.!!!invalid-base64!!!.c", { status: 200 }),
 				),
-			) as typeof fetch;
+			) as unknown as typeof fetch;
 
 			const getAuthToken = await freshGetAuthToken();
 			await expect(getAuthToken()).rejects.toThrow();

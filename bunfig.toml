@@ -1,6 +1,2 @@
 [install]
 peer = false
-
-[test]
-# Isolate test files to prevent mock.module leaking between files
-isolate = true

@@ -4,12 +4,12 @@ import {
 	beforeAll,
 	describe,
 	expect,
-	mock,
 	test,
-} from "bun:test";
+	vi,
+} from "vitest";
 
 // Mock config
-mock.module("../../src/config.ts", () => ({
+vi.mock("../../src/config.ts", () => ({
 	getConfig: () => ({
 		TDX_BASE_URL: "https://tdx.example.com/TDWebApi/api",
 		TDX_BEID: "test-beid",
@@ -42,7 +42,7 @@ function setFetchMock(
 }
 
 beforeAll(() => {
-	globalThis.fetch = mock(
+	globalThis.fetch = vi.fn(
 		async (input: string | URL | Request, init?: RequestInit) => {
 			_fetchCallCount++;
 			const url =
@@ -56,7 +56,7 @@ beforeAll(() => {
 			}
 			return new Response("Not mocked", { status: 500 });
 		},
-	) as typeof fetch;
+	) as unknown as typeof fetch;
 });
 
 afterEach(async () => {

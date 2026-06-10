@@ -5,15 +5,15 @@
 	"private": true,
 	"devDependencies": {
 		"@biomejs/biome": "2.4.10",
-		"@types/bun": "latest"
+		"@types/bun": "latest",
+		"vitest": "^4.1.8"
 	},
 	"peerDependencies": {
 		"typescript": "^5"
 	},
 	"scripts": {
-		"test": "bun test tests/config.test.ts tests/auth/ tests/api/ tests/tools/ tests/server.test.ts && bun test tests/qa/",
-		"test:unit": "bun test tests/config.test.ts tests/auth/ tests/api/ tests/tools/ tests/server.test.ts",
-		"test:qa": "bun test tests/qa/"
+		"test": "vitest run",
+		"test:watch": "vitest"
 	},
 	"dependencies": {
 		"@cfworker/json-schema": "^4.1.1",

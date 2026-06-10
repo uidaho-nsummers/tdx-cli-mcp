@@ -87,14 +87,11 @@ When using Claude Code, place your credentials in `.env` at the project root (it
 # All tests (unit + QA)
 bun run test
 
-# Unit tests only
-bun run test:unit
-
-# QA/integration tests only
-bun run test:qa
+# Watch mode
+bun run test:watch
 ```
 
-Unit and QA tests run in separate processes to avoid `mock.module` cross-contamination.
+Tests run under Vitest, which isolates module mocks per file natively.
 
 ## Project structure
 
@@ -152,4 +149,4 @@ On 429 responses, the server retries up to 3 times with backoff.
 - **MCP SDK:** @modelcontextprotocol/server
 - **Validation:** Zod
 - **Linting/Formatting:** Biome
-- **Testing:** bun:test
+- **Testing:** Vitest

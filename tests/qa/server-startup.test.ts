@@ -1,7 +1,7 @@
-import { afterEach, describe, expect, mock, test } from "bun:test";
+import { afterEach, describe, expect, test, vi } from "vitest";
 
 // Mock config before any transitive imports
-mock.module("../../src/config.ts", () => ({
+vi.mock("../../src/config.ts", () => ({
 	getConfig: () => ({
 		TDX_BASE_URL: "https://tdx.example.com/TDWebApi/api",
 		TDX_BEID: "test-beid",

@@ -2,6 +2,7 @@
 	"name": "agent-teams-test",
 	"type": "module",
 	"private": true,
+	"workspaces": ["packages/*"],
 	"engines": {
 		"node": ">=26.3"
 	},
@@ -15,10 +16,11 @@
 	"scripts": {
 		"start": "tsx src/index.ts",
 		"dev": "tsx watch src/index.ts",
+		"build": "tsc -b",
 		"test": "vitest run",
 		"test:watch": "vitest",
-		"typecheck": "tsc --noEmit",
-		"lint": "biome check src/ tests/"
+		"typecheck": "tsc -b",
+		"lint": "biome check src/ tests/ packages/"
 	},
 	"dependencies": {
 		"@cfworker/json-schema": "^4.1.1",

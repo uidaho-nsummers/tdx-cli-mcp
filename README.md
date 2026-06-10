@@ -95,9 +95,30 @@ npm run test:watch
 
 Tests run under Vitest, which isolates module mocks per file natively.
 
+## Workspace scaffold
+
+This repository uses npm workspaces with package placeholders for the planned library-first refactor:
+
+- `packages/core` — `@tdx/core`, reserved for shared TeamDynamix API/auth/domain logic
+- `packages/cli` — `tdx`, reserved for the future command-line interface
+- `packages/mcp` — README-only stub for the future MCP wrapper package
+
+The current MCP server implementation still lives in root `src/` and `tests/`. Future refactor issues will move domain logic into `@tdx/core` and rebuild MCP as a thin package wrapper.
+
 ## Project structure
 
 ```
+packages/
+  core/
+    package.json        # @tdx/core workspace package scaffold
+    src/index.ts        # Minimal package entrypoint
+    tsconfig.json       # TypeScript project reference target
+  cli/
+    package.json        # tdx workspace package scaffold with bin metadata
+    src/index.ts        # Minimal CLI entrypoint placeholder
+    tsconfig.json       # References @tdx/core
+  mcp/
+    README.md           # Future MCP wrapper stub only
 src/
   index.ts              # Entry point — stdio transport, graceful shutdown
   server.ts             # MCP server — tool registration
@@ -124,6 +145,9 @@ tests/
   tools/                # Tool handler tests
   qa/                   # End-to-end MCP server tests
   fixtures/             # Realistic TDX API response fixtures
+tsconfig.json           # Solution-style TypeScript project references
+tsconfig.root.json      # Current root MCP source and tests
+tsconfig.base.json      # Shared compiler options
 ```
 
 ## Authentication

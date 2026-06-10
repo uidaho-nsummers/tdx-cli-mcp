@@ -9,7 +9,7 @@ import {
 } from "vitest";
 
 // Mock config
-vi.mock("../../src/config.ts", () => ({
+vi.mock("../../packages/core/src/config.ts", () => ({
 	getConfig: () => ({
 		TDX_BASE_URL: "https://tdx.example.com/TDWebApi/api",
 		TDX_BEID: "test-beid",

@@ -9,7 +9,7 @@ import {
 } from "vitest";
 
 // Mock config
-vi.mock("../../src/config.ts", () => ({
+vi.mock("../../packages/core/src/config.ts", () => ({
 	getConfig: () => ({
 		TDX_BASE_URL: "https://tdx.example.com/TDWebApi/api",
 		TDX_BEID: "test-beid",
@@ -126,7 +126,7 @@ describe("Error handling and edge cases", () => {
 		// Direct unit test of rate limiter behavior since the 429 retry loop
 		// uses a 60-second sliding window that's too slow for integration tests.
 		const { waitIfNeeded, recordCall, getRetryWaitMs } = await import(
-			"../../src/api/rate-limiter.js"
+			"../../packages/core/src/api/rate-limiter.js"
 		);
 
 		// Record a call for a unique test endpoint

@@ -1,7 +1,7 @@
 import { describe, expect, test, vi } from "vitest";
 
-// Mock config - must be before any imports that trigger config loading
-vi.mock("../src/config.ts", () => ({
+// Mock core - must be before any imports that trigger config/API loading
+vi.mock("@tdx/core", () => ({
 	getConfig: () => ({
 		TDX_BASE_URL: "https://tdx.example.com/TDWebApi/api",
 		TDX_BEID: "test-beid",
@@ -10,10 +10,6 @@ vi.mock("../src/config.ts", () => ({
 		TDX_ASSET_APP_ID: 10,
 		TDX_KB_APP_ID: 20,
 	}),
-}));
-
-// Mock the API client and auth
-vi.mock("../src/api/client.ts", () => ({
 	tdxRequest: vi.fn(() =>
 		Promise.resolve({ data: {}, headers: new Headers() }),
 	),
@@ -26,10 +22,8 @@ vi.mock("../src/api/client.ts", () => ({
 			super(`TDX API error ${status}: ${statusText}`);
 		}
 	},
-}));
-
-vi.mock("../src/auth/client.ts", () => ({
 	getAuthToken: vi.fn(() => Promise.resolve("mock-token")),
+	clearAuthToken: vi.fn(),
 }));
 
 describe("MCP server integration", () => {

@@ -3,7 +3,7 @@ import {
 	getRetryWaitMs,
 	recordCall,
 	waitIfNeeded,
-} from "../../src/api/rate-limiter.ts";
+} from "../../packages/core/src/api/rate-limiter.ts";
 
 // The rate-limiter uses a module-level Map. We use unique paths to isolate tests.
 let testCounter = 0;

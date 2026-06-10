@@ -8,7 +8,7 @@ function makeJwt(exp: number): string {
 }
 
 // Mock the config module BEFORE any imports that depend on it
-vi.mock("../../src/config.ts", () => ({
+vi.mock("../../packages/core/src/config.ts", () => ({
 	getConfig: () => ({
 		TDX_BASE_URL: "https://tdx.example.com/TDWebApi/api",
 		TDX_BEID: "test-beid",
@@ -31,7 +31,7 @@ describe("auth client", () => {
 	async function freshGetAuthToken(): Promise<() => Promise<string>> {
 		// Reset the module registry to get a fresh module with fresh state
 		vi.resetModules();
-		const mod = await import("../../src/auth/client.ts");
+		const mod = await import("../../packages/core/src/auth/client.ts");
 		return mod.getAuthToken;
 	}
 

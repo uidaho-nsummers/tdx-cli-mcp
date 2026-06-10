@@ -103,7 +103,7 @@ This repository uses npm workspaces for the planned library-first refactor:
 - `packages/cli` — `tdx`, reserved for the future command-line interface
 - `packages/mcp` — README-only stub for the future MCP wrapper package
 
-The current MCP server implementation still lives in root `src/` and `tests/`. It consumes shared client primitives from `@tdx/core`; future refactor issues will move domain operations into core and rebuild MCP as a thin package wrapper.
+The current MCP server implementation still lives in root `src/` and `tests/`. It consumes shared client primitives, domain operations, and Zod input schemas from `@tdx/core`; the remaining refactor issue will rebuild MCP as a thin package wrapper.
 
 ## Project structure
 
@@ -116,6 +116,8 @@ packages/
     src/auth/client.ts  # TDX auth - JWT caching, proactive refresh
     src/api/client.ts   # Fetch wrapper - auth headers, retry on 429
     src/api/rate-limiter.ts # Client-side sliding window rate limiter
+    src/operations/     # Domain operations returning raw TDX data
+    src/schemas/        # Zod input schemas for each operation
     tsconfig.json       # TypeScript project reference target
   cli/
     package.json        # tdx workspace package scaffold with bin metadata
@@ -134,19 +136,13 @@ src/
     client.ts           # Transitional re-export from @tdx/core
     rate-limiter.ts     # Transitional re-export from @tdx/core
   tools/
-    tickets.ts          # Ticket tool handlers
-    assets.ts           # Asset tool handlers
-    kb.ts               # Knowledge base tool handlers
-    people.ts           # People tool handlers
-    applications.ts     # Applications tool handler
-    utils.ts            # safeToolCall error wrapper
-    schemas/            # Zod input schemas for each tool
+    utils.ts            # safeToolCall error wrapper + textResult helper
 tests/
   config.test.ts        # Config loading tests
   server.test.ts        # Server creation tests
   auth/                 # Auth client tests
   api/                  # API client + rate limiter + error scenario tests
-  tools/                # Tool handler tests
+  operations/           # Core domain operation + schema tests
   qa/                   # End-to-end MCP server tests
   fixtures/             # Realistic TDX API response fixtures
 tsconfig.json           # Solution-style TypeScript project references

@@ -1,3 +1,4 @@
+import "dotenv/config";
 import { StdioServerTransport } from "@modelcontextprotocol/server";
 import { createServer } from "./server.js";
 

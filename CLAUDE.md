@@ -14,7 +14,7 @@ MCP server wrapping the TeamDynamix Web API. Bun runtime, TypeScript strict mode
 Use Bun, not Node.js. Bun auto-loads `.env` — no dotenv.
 
 - `bun <file>` not `node <file>`
-- `bun test` not `jest`/`vitest`
+- `bun run test` runs Vitest (not `bun test` directly)
 - `bun install` not `npm install`
 - `bunx <pkg>` not `npx <pkg>`
 

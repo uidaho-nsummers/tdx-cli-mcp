@@ -1,3 +1,4 @@
+import type { JSONRPCMessage } from "@modelcontextprotocol/server";
 import {
 	afterAll,
 	afterEach,
@@ -7,26 +8,19 @@ import {
 	test,
 	vi,
 } from "vitest";
-
-// Mock config
-vi.mock("../../packages/core/src/config.ts", () => ({
-	getConfig: () => ({
-		TDX_BASE_URL: "https://tdx.example.com/TDWebApi/api",
-		TDX_BEID: "test-beid",
-		TDX_WEB_SERVICES_KEY: "test-key",
-		TDX_TICKETING_APP_ID: 42,
-		TDX_ASSET_APP_ID: 10,
-		TDX_KB_APP_ID: 20,
-	}),
-}));
-
-import type { JSONRPCMessage } from "@modelcontextprotocol/server";
 import {
 	createTestClient,
 	initializeClient,
 	type McpTestClient,
 	makeJwt,
 } from "./helpers.js";
+
+process.env.TDX_BASE_URL = "https://tdx.example.com/TDWebApi/api";
+process.env.TDX_BEID = "test-beid";
+process.env.TDX_WEB_SERVICES_KEY = "test-key";
+process.env.TDX_TICKETING_APP_ID = "42";
+process.env.TDX_ASSET_APP_ID = "10";
+process.env.TDX_KB_APP_ID = "20";
 
 let client: McpTestClient;
 let _fetchCallCount = 0;

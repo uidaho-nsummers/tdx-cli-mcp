@@ -81,7 +81,7 @@ The server communicates over stdio using the MCP protocol. It's designed to be l
 }
 ```
 
-When using Claude Code, place your credentials in `.env` at the project root (it's gitignored). The server loads `.env` automatically via dotenv (from the working directory).
+When using Claude Code, place your credentials in `.env` at the project root (it's gitignored). Note: `dotenv/config` loads `.env` from the current working directory; if the server is launched from elsewhere, set `DOTENV_CONFIG_PATH=/absolute/path/to/.env` (or configure the client to run with the repo as its working directory).
 
 ## Running tests
 

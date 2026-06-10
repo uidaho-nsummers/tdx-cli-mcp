@@ -6,14 +6,14 @@ An MCP (Model Context Protocol) server that wraps the [TeamDynamix Web API](http
 
 ### Prerequisites
 
-- [Bun](https://bun.sh) v1.3+
+- [Node.js](https://nodejs.org) v26.3+ (with npm)
 - A TeamDynamix instance with Web API access
 - Admin service account credentials (BEID + Web Services Key)
 
 ### 1. Install dependencies
 
 ```sh
-bun install
+npm install
 ```
 
 ### 2. Configure environment
@@ -38,8 +38,10 @@ TDX_KB_APP_ID=789
 ### 3. Run the server
 
 ```sh
-bun run src/index.ts
+npm start
 ```
+
+(Equivalent to `npx tsx src/index.ts` — [tsx](https://tsx.is) executes TypeScript directly under Node.js.)
 
 The server communicates over stdio using the MCP protocol. It's designed to be launched by an MCP client (like Claude Desktop or Claude Code), not run standalone.
 
@@ -51,8 +53,8 @@ The server communicates over stdio using the MCP protocol. It's designed to be l
 {
   "mcpServers": {
     "tdx": {
-      "command": "bun",
-      "args": ["run", "/absolute/path/to/src/index.ts"],
+      "command": "npx",
+      "args": ["-y", "tsx", "/absolute/path/to/src/index.ts"],
       "env": {
         "TDX_BASE_URL": "https://yourinstance.teamdynamix.com/TDWebApi/api",
         "TDX_BEID": "your-beid",
@@ -72,23 +74,23 @@ The server communicates over stdio using the MCP protocol. It's designed to be l
 {
   "mcpServers": {
     "tdx": {
-      "command": "bun",
-      "args": ["run", "/absolute/path/to/src/index.ts"]
+      "command": "npx",
+      "args": ["-y", "tsx", "/absolute/path/to/src/index.ts"]
     }
   }
 }
 ```
 
-When using Claude Code, place your credentials in `.env` at the project root (it's gitignored). Bun loads `.env` automatically.
+When using Claude Code, place your credentials in `.env` at the project root (it's gitignored). Note: `dotenv/config` loads `.env` from the current working directory; if the server is launched from elsewhere, set `DOTENV_CONFIG_PATH=/absolute/path/to/.env` (or configure the client to run with the repo as its working directory).
 
 ## Running tests
 
 ```sh
 # All tests (unit + QA)
-bun run test
+npm test
 
 # Watch mode
-bun run test:watch
+npm run test:watch
 ```
 
 Tests run under Vitest, which isolates module mocks per file natively.
@@ -144,7 +146,7 @@ On 429 responses, the server retries up to 3 times with backoff.
 
 ## Tech stack
 
-- **Runtime:** Bun
+- **Runtime:** Node.js (v26.3+) executed via tsx
 - **Language:** TypeScript (strict mode)
 - **MCP SDK:** @modelcontextprotocol/server
 - **Validation:** Zod

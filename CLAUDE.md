@@ -1,22 +1,22 @@
 # TDX MCP Server
 
-MCP server wrapping the TeamDynamix Web API. Bun runtime, TypeScript strict mode, Zod validation, Biome formatting.
+MCP server wrapping the TeamDynamix Web API. Node.js runtime (tsx for TypeScript execution), TypeScript strict mode, Zod validation, Biome formatting.
 
 ## Commands
 
-- `bun run src/index.ts` — Start the MCP server (stdio transport)
-- `bun run test` — Run all tests (Vitest)
-- `bun run test:watch` — Run tests in watch mode
-- `bunx biome check --write src/ tests/` — Format and lint
+- `npm start` — Start the MCP server (stdio transport); `npm run dev` for watch mode
+- `npm test` — Run all tests (Vitest)
+- `npm run test:watch` — Run tests in watch mode
+- `npm run typecheck` — Type-check with tsc
+- `npx biome check --write src/ tests/` — Format and lint
 
 ## Runtime
 
-Use Bun, not Node.js. Bun auto-loads `.env` — no dotenv.
+Use Node.js v26.3+ with tsx, not Bun. Node does not auto-load `.env` — the entry point imports `dotenv/config` first.
 
-- `bun <file>` not `node <file>`
-- `bun run test` runs Vitest (not `bun test` directly)
-- `bun install` not `npm install`
-- `bunx <pkg>` not `npx <pkg>`
+- `npx tsx <file>` not `bun <file>`
+- `npm install` / `npm ci` not `bun install`
+- `npx <pkg>` not `bunx <pkg>`
 
 ## Architecture
 

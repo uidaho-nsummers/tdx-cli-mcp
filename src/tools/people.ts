@@ -1,6 +1,6 @@
 import type { CallToolResult } from "@modelcontextprotocol/server";
+import { tdxRequest } from "@tdx/core";
 import type { z } from "zod";
-import { tdxRequest } from "../api/client.js";
 import type {
 	peopleGetInputSchema,
 	peopleSearchInputSchema,

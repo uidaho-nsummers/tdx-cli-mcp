@@ -1,5 +1,5 @@
 import type { CallToolResult } from "@modelcontextprotocol/server";
-import { TdxApiError } from "../api/client.js";
+import { TdxApiError } from "@tdx/core";
 
 export function textResult(data: unknown): CallToolResult {
 	return {

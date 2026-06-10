@@ -14,15 +14,19 @@
 		"vitest": "^4.1.8"
 	},
 	"scripts": {
+		"prestart": "npm run build --workspace @tdx/core",
 		"start": "tsx src/index.ts",
+		"predev": "npm run build --workspace @tdx/core",
 		"dev": "tsx watch src/index.ts",
 		"build": "tsc -b",
+		"pretest": "npm run build --workspace @tdx/core",
 		"test": "vitest run",
 		"test:watch": "vitest",
 		"typecheck": "tsc -b",
 		"lint": "biome check src/ tests/ packages/"
 	},
 	"dependencies": {
+		"@tdx/core": "0.0.0",
 		"@cfworker/json-schema": "^4.1.1",
 		"@modelcontextprotocol/server": "^2.0.0-alpha.2",
 		"dotenv": "^17.4.2",

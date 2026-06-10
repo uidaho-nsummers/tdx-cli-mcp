@@ -7,18 +7,6 @@ import {
 	ticketUpdateInputSchema,
 } from "../../src/tools/schemas/tickets.ts";
 
-// Mock config
-vi.mock("../../src/config.ts", () => ({
-	getConfig: () => ({
-		TDX_BASE_URL: "https://tdx.example.com/TDWebApi/api",
-		TDX_BEID: "test-beid",
-		TDX_WEB_SERVICES_KEY: "test-key",
-		TDX_TICKETING_APP_ID: 42,
-		TDX_ASSET_APP_ID: 10,
-		TDX_KB_APP_ID: 20,
-	}),
-}));
-
 // Mock the API client
 const { mockTdxRequest } = vi.hoisted(() => ({
 	mockTdxRequest: vi.fn<
@@ -30,7 +18,16 @@ const { mockTdxRequest } = vi.hoisted(() => ({
 		}),
 	),
 }));
-vi.mock("../../src/api/client.ts", () => ({
+
+vi.mock("@tdx/core", () => ({
+	getConfig: () => ({
+		TDX_BASE_URL: "https://tdx.example.com/TDWebApi/api",
+		TDX_BEID: "test-beid",
+		TDX_WEB_SERVICES_KEY: "test-key",
+		TDX_TICKETING_APP_ID: 42,
+		TDX_ASSET_APP_ID: 10,
+		TDX_KB_APP_ID: 20,
+	}),
 	tdxRequest: mockTdxRequest,
 	TdxApiError: class TdxApiError extends Error {
 		constructor(
@@ -41,11 +38,8 @@ vi.mock("../../src/api/client.ts", () => ({
 			super(`TDX API error ${status}: ${statusText}`);
 		}
 	},
-}));
-
-// Mock auth
-vi.mock("../../src/auth/client.ts", () => ({
 	getAuthToken: vi.fn(() => Promise.resolve("mock-token")),
+	clearAuthToken: vi.fn(),
 }));
 
 describe("ticket tool handlers", () => {

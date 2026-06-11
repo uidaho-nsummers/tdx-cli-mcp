@@ -154,8 +154,8 @@ The **CLI** package contains only:
 **Acceptance criteria:**
 - `packages/mcp/src/server.ts` re-registers all 13 tools using `@tdx/core` operations
 - Tool descriptions and Zod schemas match the original
-- `safeToolCall()` and `textResult()` re-implemented locally in the MCP package (or kept as a small `packages/mcp/src/utils.ts`)
-- QA tests (currently `tests/qa/`) migrated to `packages/mcp/tests/qa/` and pass
+- `safeToolCall()` and `textResult()` re-implemented locally in `packages/mcp/src/utils.ts`
+- QA tests migrated to `packages/mcp/tests/qa/` and pass
 
 ---
 
@@ -382,10 +382,12 @@ This epic is defined here for planning purposes. Implementation is deferred.
 - PATCH still uses JSON Patch (RFC 6902) — this is a TDX API requirement, not an MCP choice
 - Error sanitization: `TdxApiError` still exposes only HTTP status to MCP consumers, not raw bodies
 
+**Completed MCP package work:**
+- MCP server package implemented as wrapper over `@tdx/core`
+- QA tests ported from root `tests/qa/` to `packages/mcp/tests/qa/`
+- Stdio transport and graceful shutdown wired in `packages/mcp/src/index.ts`
+
 **Issues to file when ready:**
-- `mcp: Implement MCP server package as wrapper over @tdx/core`
-- `mcp: Port QA tests from current tests/qa/ to packages/mcp/tests/`
-- `mcp: Wire stdio transport and graceful shutdown`
 - `mcp: Add install instructions for Claude Desktop and VS Code`
 
 ---

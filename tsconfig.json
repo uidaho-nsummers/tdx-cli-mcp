@@ -3,6 +3,7 @@
 	"references": [
 		{ "path": "./tsconfig.root.json" },
 		{ "path": "./packages/core" },
+		{ "path": "./packages/mcp" },
 		{ "path": "./packages/cli" }
 	]
 }

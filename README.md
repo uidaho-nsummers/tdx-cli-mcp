@@ -41,7 +41,7 @@ TDX_KB_APP_ID=789
 npm start
 ```
 
-(Equivalent to `npx tsx src/index.ts` — [tsx](https://tsx.is) executes TypeScript directly under Node.js.)
+(Equivalent to `npx tsx packages/mcp/src/index.ts` — [tsx](https://tsx.is) executes TypeScript directly under Node.js.)
 
 The server communicates over stdio using the MCP protocol. It's designed to be launched by an MCP client (like Claude Desktop or Claude Code), not run standalone.
 
@@ -54,7 +54,7 @@ The server communicates over stdio using the MCP protocol. It's designed to be l
   "mcpServers": {
     "tdx": {
       "command": "npx",
-      "args": ["-y", "tsx", "/absolute/path/to/src/index.ts"],
+      "args": ["-y", "tsx", "/absolute/path/to/packages/mcp/src/index.ts"],
       "env": {
         "TDX_BASE_URL": "https://yourinstance.teamdynamix.com/TDWebApi/api",
         "TDX_BEID": "your-beid",
@@ -75,7 +75,7 @@ The server communicates over stdio using the MCP protocol. It's designed to be l
   "mcpServers": {
     "tdx": {
       "command": "npx",
-      "args": ["-y", "tsx", "/absolute/path/to/src/index.ts"]
+      "args": ["-y", "tsx", "/absolute/path/to/packages/mcp/src/index.ts"]
     }
   }
 }
@@ -101,9 +101,9 @@ This repository uses npm workspaces for the planned library-first refactor:
 
 - `packages/core` — `@tdx/core`, shared TeamDynamix config, auth, API client, and rate-limit logic
 - `packages/cli` — `tdx`, reserved for the future command-line interface
-- `packages/mcp` — README-only stub for the future MCP wrapper package
+- `packages/mcp` — `@tdx/mcp`, thin MCP wrapper over `@tdx/core`
 
-The current MCP server implementation still lives in root `src/` and `tests/`. It consumes shared client primitives, domain operations, and Zod input schemas from `@tdx/core`; the remaining refactor issue will rebuild MCP as a thin package wrapper.
+The MCP server implementation lives in `packages/mcp`. Root `src/` keeps compatibility entrypoints that delegate to the package source.
 
 ## Project structure
 
@@ -124,10 +124,14 @@ packages/
     src/index.ts        # Minimal CLI entrypoint placeholder
     tsconfig.json       # References @tdx/core
   mcp/
-    README.md           # Future MCP wrapper stub only
+    package.json        # @tdx/mcp workspace package metadata
+    src/index.ts        # Entry point — stdio transport, graceful shutdown
+    src/server.ts       # MCP server — tool registration
+    src/utils.ts        # safeToolCall error wrapper + textResult helper
+    tests/qa/           # End-to-end MCP server tests
 src/
-  index.ts              # Entry point — stdio transport, graceful shutdown
-  server.ts             # MCP server — tool registration
+  index.ts              # Compatibility entrypoint delegating to packages/mcp
+  server.ts             # Compatibility re-export from packages/mcp
   config.ts             # Transitional re-export from @tdx/core
   auth/
     client.ts           # Transitional re-export from @tdx/core
@@ -136,17 +140,14 @@ src/
     client.ts           # Transitional re-export from @tdx/core
     rate-limiter.ts     # Transitional re-export from @tdx/core
   tools/
-    utils.ts            # safeToolCall error wrapper + textResult helper
+    utils.ts            # Compatibility re-export from packages/mcp
 tests/
   config.test.ts        # Config loading tests
-  server.test.ts        # Server creation tests
   auth/                 # Auth client tests
   api/                  # API client + rate limiter + error scenario tests
   operations/           # Core domain operation + schema tests
-  qa/                   # End-to-end MCP server tests
-  fixtures/             # Realistic TDX API response fixtures
 tsconfig.json           # Solution-style TypeScript project references
-tsconfig.root.json      # Current root MCP source and tests
+tsconfig.root.json      # Transitional root source and shared tests
 tsconfig.base.json      # Shared compiler options
 ```
 

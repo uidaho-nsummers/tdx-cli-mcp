@@ -15,9 +15,9 @@
 	},
 	"scripts": {
 		"prestart": "npm run build --workspace @tdx/core",
-		"start": "tsx src/index.ts",
+		"start": "tsx packages/mcp/src/index.ts",
 		"predev": "npm run build --workspace @tdx/core",
-		"dev": "tsx watch src/index.ts",
+		"dev": "tsx watch packages/mcp/src/index.ts",
 		"build": "tsc -b",
 		"pretest": "npm run build --workspace @tdx/core",
 		"test": "vitest run",
@@ -27,9 +27,6 @@
 	},
 	"dependencies": {
 		"@tdx/core": "0.0.0",
-		"@cfworker/json-schema": "^4.1.1",
-		"@modelcontextprotocol/server": "^2.0.0-alpha.2",
-		"dotenv": "^17.4.2",
 		"zod": "^4.3.6"
 	}
 }

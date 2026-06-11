@@ -120,7 +120,7 @@ describe("Error handling and edge cases", () => {
 		// Direct unit test of rate limiter behavior since the 429 retry loop
 		// uses a 60-second sliding window that's too slow for integration tests.
 		const { waitIfNeeded, recordCall, getRetryWaitMs } = await import(
-			"../../packages/core/src/api/rate-limiter.js"
+			"../../../core/src/api/rate-limiter.js"
 		);
 
 		// Record a call for a unique test endpoint

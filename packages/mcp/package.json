@@ -1,0 +1,28 @@
+{
+	"name": "@tdx/mcp",
+	"version": "0.0.0",
+	"type": "module",
+	"main": "./dist/index.js",
+	"types": "./dist/index.d.ts",
+	"exports": {
+		".": {
+			"types": "./dist/index.d.ts",
+			"import": "./dist/index.js",
+			"default": "./dist/index.js"
+		}
+	},
+	"scripts": {
+		"prestart": "npm run build --workspace @tdx/core",
+		"build": "tsc -b",
+		"typecheck": "tsc -b",
+		"start": "tsx src/index.ts",
+		"predev": "npm run build --workspace @tdx/core",
+		"dev": "tsx watch src/index.ts"
+	},
+	"dependencies": {
+		"@cfworker/json-schema": "^4.1.1",
+		"@modelcontextprotocol/server": "^2.0.0-alpha.2",
+		"@tdx/core": "0.0.0",
+		"dotenv": "^17.4.2"
+	}
+}

@@ -52,6 +52,23 @@ describe("asset operations", () => {
 				body: { SearchText: "laptop", MaxResults: 5 },
 			});
 		});
+
+		test("applies schema defaults for direct core callers", async () => {
+			mockTdxRequest.mockImplementation(() =>
+				Promise.resolve({ data: [], headers: new Headers() }),
+			);
+
+			const { assetsSearch } = await import(
+				"../../packages/core/src/operations/assets.ts"
+			);
+			await assetsSearch({});
+
+			expect(mockTdxRequest).toHaveBeenLastCalledWith({
+				method: "POST",
+				path: "/10/assets/search",
+				body: { MaxResults: 25 },
+			});
+		});
 	});
 
 	describe("assetsGet", () => {

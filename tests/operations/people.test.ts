@@ -38,6 +38,23 @@ describe("people operations", () => {
 				body: { SearchText: "jane", MaxResults: 5 },
 			});
 		});
+
+		test("applies schema defaults for direct core callers", async () => {
+			mockTdxRequest.mockImplementation(() =>
+				Promise.resolve({ data: [], headers: new Headers() }),
+			);
+
+			const { peopleSearch } = await import(
+				"../../packages/core/src/operations/people.ts"
+			);
+			await peopleSearch({});
+
+			expect(mockTdxRequest).toHaveBeenLastCalledWith({
+				method: "POST",
+				path: "/people/search",
+				body: { MaxResults: 25 },
+			});
+		});
 	});
 
 	describe("peopleGet", () => {

@@ -1,26 +1,28 @@
 import type { z } from "zod";
 import { tdxRequest } from "../api/client.js";
-import type {
+import {
 	peopleGetInputSchema,
 	peopleSearchInputSchema,
 } from "../schemas/people.js";
 
 export async function peopleSearch(
-	args: z.infer<typeof peopleSearchInputSchema>,
+	args: z.input<typeof peopleSearchInputSchema>,
 ): Promise<unknown> {
+	const input = peopleSearchInputSchema.parse(args);
 	const { data } = await tdxRequest({
 		method: "POST",
 		path: "/people/search",
-		body: args,
+		body: input,
 	});
 	return data;
 }
 
 export async function peopleGet(
-	args: z.infer<typeof peopleGetInputSchema>,
+	args: z.input<typeof peopleGetInputSchema>,
 ): Promise<unknown> {
+	const input = peopleGetInputSchema.parse(args);
 	const { data } = await tdxRequest({
-		path: `/people/${args.uid}`,
+		path: `/people/${input.uid}`,
 	});
 	return data;
 }

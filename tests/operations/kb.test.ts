@@ -49,6 +49,23 @@ describe("knowledge base operations", () => {
 				body: { SearchText: "vpn", ReturnCount: 5 },
 			});
 		});
+
+		test("applies schema defaults for direct core callers", async () => {
+			mockTdxRequest.mockImplementation(() =>
+				Promise.resolve({ data: [], headers: new Headers() }),
+			);
+
+			const { kbSearch } = await import(
+				"../../packages/core/src/operations/kb.ts"
+			);
+			await kbSearch({});
+
+			expect(mockTdxRequest).toHaveBeenLastCalledWith({
+				method: "POST",
+				path: "/20/knowledgebase/search",
+				body: { ReturnCount: 25 },
+			});
+		});
 	});
 
 	describe("kbGet", () => {

@@ -80,6 +80,23 @@ describe("ticket operations", () => {
 				},
 			});
 		});
+
+		test("applies schema defaults for direct core callers", async () => {
+			mockTdxRequest.mockImplementation(() =>
+				Promise.resolve({ data: [], headers: new Headers() }),
+			);
+
+			const { ticketsSearch } = await import(
+				"../../packages/core/src/operations/tickets.ts"
+			);
+			await ticketsSearch({});
+
+			expect(mockTdxRequest).toHaveBeenLastCalledWith({
+				method: "POST",
+				path: "/42/tickets/search",
+				body: { MaxResults: 25 },
+			});
+		});
 	});
 
 	describe("ticketsGet", () => {
@@ -135,6 +152,33 @@ describe("ticket operations", () => {
 				},
 			});
 		});
+
+		test("defaults optional query flags for direct core callers", async () => {
+			mockTdxRequest.mockImplementation(() =>
+				Promise.resolve({ data: { ID: 999 }, headers: new Headers() }),
+			);
+
+			const { ticketsCreate } = await import(
+				"../../packages/core/src/operations/tickets.ts"
+			);
+			await ticketsCreate({
+				TypeID: 1,
+				Title: "New Ticket",
+			});
+
+			expect(mockTdxRequest).toHaveBeenLastCalledWith({
+				method: "POST",
+				path: "/42/tickets",
+				body: { TypeID: 1, Title: "New Ticket" },
+				query: {
+					NotifyRequestor: "false",
+					NotifyResponsible: "false",
+					EnableNotifyReviewer: "false",
+					AllowRequestorCreation: "false",
+					applyDefaults: "false",
+				},
+			});
+		});
 	});
 
 	describe("ticketsUpdate", () => {
@@ -157,6 +201,27 @@ describe("ticket operations", () => {
 				path: "/42/tickets/123",
 				body: [{ op: "replace", path: "/Title", value: "Updated" }],
 				query: { notifyNewResponsible: "true" },
+			});
+		});
+
+		test("defaults notifyNewResponsible for direct core callers", async () => {
+			mockTdxRequest.mockImplementation(() =>
+				Promise.resolve({ data: { ID: 123 }, headers: new Headers() }),
+			);
+
+			const { ticketsUpdate } = await import(
+				"../../packages/core/src/operations/tickets.ts"
+			);
+			await ticketsUpdate({
+				id: 123,
+				patches: [{ op: "replace", path: "/Title", value: "Updated" }],
+			});
+
+			expect(mockTdxRequest).toHaveBeenLastCalledWith({
+				method: "PATCH",
+				path: "/42/tickets/123",
+				body: [{ op: "replace", path: "/Title", value: "Updated" }],
+				query: { notifyNewResponsible: "false" },
 			});
 		});
 	});
@@ -198,6 +263,26 @@ describe("ticket operations", () => {
 			});
 
 			expect(mockTdxRequest).toHaveBeenCalledWith({
+				method: "POST",
+				path: "/42/tickets/456/feed",
+				body: { Comments: "Hello world", IsPrivate: false },
+			});
+		});
+
+		test("applies IsPrivate default for direct core callers", async () => {
+			mockTdxRequest.mockImplementation(() =>
+				Promise.resolve({ data: { ID: 1 }, headers: new Headers() }),
+			);
+
+			const { ticketsFeedPost } = await import(
+				"../../packages/core/src/operations/tickets.ts"
+			);
+			await ticketsFeedPost({
+				id: 456,
+				Comments: "Hello world",
+			});
+
+			expect(mockTdxRequest).toHaveBeenLastCalledWith({
 				method: "POST",
 				path: "/42/tickets/456/feed",
 				body: { Comments: "Hello world", IsPrivate: false },

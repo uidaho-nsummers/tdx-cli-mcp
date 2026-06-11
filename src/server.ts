@@ -1,35 +1,33 @@
 import { McpServer } from "@modelcontextprotocol/server";
-import { applicationsList } from "./tools/applications.js";
-import { assetsGet, assetsSearch } from "./tools/assets.js";
-import { kbGet, kbSearch } from "./tools/kb.js";
-import { peopleGet, peopleSearch } from "./tools/people.js";
-import { applicationsListInputSchema } from "./tools/schemas/applications.js";
 import {
+	applicationsList,
+	applicationsListInputSchema,
 	assetGetInputSchema,
 	assetSearchInputSchema,
-} from "./tools/schemas/assets.js";
-import { kbGetInputSchema, kbSearchInputSchema } from "./tools/schemas/kb.js";
-import {
+	assetsGet,
+	assetsSearch,
+	kbGet,
+	kbGetInputSchema,
+	kbSearch,
+	kbSearchInputSchema,
+	peopleGet,
 	peopleGetInputSchema,
+	peopleSearch,
 	peopleSearchInputSchema,
-} from "./tools/schemas/people.js";
-import {
 	ticketCreateInputSchema,
 	ticketFeedGetInputSchema,
 	ticketFeedPostInputSchema,
 	ticketGetInputSchema,
 	ticketSearchInputSchema,
-	ticketUpdateInputSchema,
-} from "./tools/schemas/tickets.js";
-import {
 	ticketsCreate,
 	ticketsFeedGet,
 	ticketsFeedPost,
 	ticketsGet,
 	ticketsSearch,
 	ticketsUpdate,
-} from "./tools/tickets.js";
-import { safeToolCall } from "./tools/utils.js";
+	ticketUpdateInputSchema,
+} from "@tdx/core";
+import { safeToolCall, textResult } from "./tools/utils.js";
 
 export function createServer(): McpServer {
 	const server = new McpServer({
@@ -45,7 +43,8 @@ export function createServer(): McpServer {
 				"Search for tickets in TeamDynamix. Returns abbreviated results (no Description/Attributes). Use tdx_tickets_get for full details.",
 			inputSchema: ticketSearchInputSchema,
 		},
-		async (args) => safeToolCall(() => ticketsSearch(args)),
+		async (args) =>
+			safeToolCall(async () => textResult(await ticketsSearch(args))),
 	);
 
 	server.registerTool(
@@ -55,7 +54,8 @@ export function createServer(): McpServer {
 				"Get a specific ticket by ID from TeamDynamix. Returns full details including Description and Attributes.",
 			inputSchema: ticketGetInputSchema,
 		},
-		async (args) => safeToolCall(() => ticketsGet(args)),
+		async (args) =>
+			safeToolCall(async () => textResult(await ticketsGet(args))),
 	);
 
 	server.registerTool(
@@ -64,7 +64,8 @@ export function createServer(): McpServer {
 			description: "Create a new ticket in TeamDynamix",
 			inputSchema: ticketCreateInputSchema,
 		},
-		async (args) => safeToolCall(() => ticketsCreate(args)),
+		async (args) =>
+			safeToolCall(async () => textResult(await ticketsCreate(args))),
 	);
 
 	server.registerTool(
@@ -74,7 +75,8 @@ export function createServer(): McpServer {
 				"Update an existing ticket in TeamDynamix using JSON Patch operations (RFC 6902). Each patch has op (add/remove/replace), path, and value.",
 			inputSchema: ticketUpdateInputSchema,
 		},
-		async (args) => safeToolCall(() => ticketsUpdate(args)),
+		async (args) =>
+			safeToolCall(async () => textResult(await ticketsUpdate(args))),
 	);
 
 	server.registerTool(
@@ -83,7 +85,8 @@ export function createServer(): McpServer {
 			description: "Get the activity feed for a ticket in TeamDynamix",
 			inputSchema: ticketFeedGetInputSchema,
 		},
-		async (args) => safeToolCall(() => ticketsFeedGet(args)),
+		async (args) =>
+			safeToolCall(async () => textResult(await ticketsFeedGet(args))),
 	);
 
 	server.registerTool(
@@ -92,7 +95,8 @@ export function createServer(): McpServer {
 			description: "Post a comment to a ticket's activity feed in TeamDynamix",
 			inputSchema: ticketFeedPostInputSchema,
 		},
-		async (args) => safeToolCall(() => ticketsFeedPost(args)),
+		async (args) =>
+			safeToolCall(async () => textResult(await ticketsFeedPost(args))),
 	);
 
 	// Asset tools
@@ -103,7 +107,8 @@ export function createServer(): McpServer {
 				"Search for assets/CIs in TeamDynamix. Returns abbreviated results. Use tdx_assets_get for full details.",
 			inputSchema: assetSearchInputSchema,
 		},
-		async (args) => safeToolCall(() => assetsSearch(args)),
+		async (args) =>
+			safeToolCall(async () => textResult(await assetsSearch(args))),
 	);
 
 	server.registerTool(
@@ -112,7 +117,7 @@ export function createServer(): McpServer {
 			description: "Get a specific asset/CI by ID from TeamDynamix",
 			inputSchema: assetGetInputSchema,
 		},
-		async (args) => safeToolCall(() => assetsGet(args)),
+		async (args) => safeToolCall(async () => textResult(await assetsGet(args))),
 	);
 
 	// Knowledge Base tools
@@ -122,7 +127,7 @@ export function createServer(): McpServer {
 			description: "Search the Knowledge Base in TeamDynamix",
 			inputSchema: kbSearchInputSchema,
 		},
-		async (args) => safeToolCall(() => kbSearch(args)),
+		async (args) => safeToolCall(async () => textResult(await kbSearch(args))),
 	);
 
 	server.registerTool(
@@ -131,7 +136,7 @@ export function createServer(): McpServer {
 			description: "Get a specific Knowledge Base article from TeamDynamix",
 			inputSchema: kbGetInputSchema,
 		},
-		async (args) => safeToolCall(() => kbGet(args)),
+		async (args) => safeToolCall(async () => textResult(await kbGet(args))),
 	);
 
 	// People tools
@@ -141,7 +146,8 @@ export function createServer(): McpServer {
 			description: "Search for people in TeamDynamix",
 			inputSchema: peopleSearchInputSchema,
 		},
-		async (args) => safeToolCall(() => peopleSearch(args)),
+		async (args) =>
+			safeToolCall(async () => textResult(await peopleSearch(args))),
 	);
 
 	server.registerTool(
@@ -150,7 +156,7 @@ export function createServer(): McpServer {
 			description: "Get a specific person by UID from TeamDynamix",
 			inputSchema: peopleGetInputSchema,
 		},
-		async (args) => safeToolCall(() => peopleGet(args)),
+		async (args) => safeToolCall(async () => textResult(await peopleGet(args))),
 	);
 
 	// Applications tool
@@ -160,7 +166,7 @@ export function createServer(): McpServer {
 			description: "List all applications in TeamDynamix",
 			inputSchema: applicationsListInputSchema,
 		},
-		async () => safeToolCall(() => applicationsList()),
+		async () => safeToolCall(async () => textResult(await applicationsList())),
 	);
 
 	return server;

@@ -27,18 +27,18 @@ The repo is being initialized as an npm monorepo, but the MCP implementation has
 - `tsconfig.json` — Solution-style TypeScript project references
 - `tsconfig.root.json` — Current root MCP source and tests
 - `tsconfig.base.json` — Shared compiler options
-- `packages/core/` — `@tdx/core` scaffold for future shared API/auth/domain logic
+- `packages/core/` — `@tdx/core`: shared config, auth, API client, rate limiter, **domain operations** (`operations/*.ts`), and **Zod input schemas** (`schemas/*.ts`)
 - `packages/cli/` — `tdx` scaffold for the future CLI; package metadata includes `bin.tdx = dist/index.js`
 - `packages/mcp/` — README-only stub for the future MCP wrapper; do not add MCP implementation files here for Issue #10
 - `src/index.ts` — Entry point, stdio transport, graceful shutdown
-- `src/server.ts` — MCP server, registers 13 tools via `createServer()`
+- `src/server.ts` — MCP server, registers 13 tools via `createServer()`; imports operations + schemas from `@tdx/core`
 - `src/config.ts` — Lazy-loaded Zod-validated env config (`getConfig()`)
 - `src/auth/client.ts` — `getAuthToken()` with JWT cache + proactive refresh
 - `src/api/client.ts` — `tdxRequest()` fetch wrapper with auth, retry on 429
 - `src/api/rate-limiter.ts` — Client-side sliding window, per-endpoint limits
-- `src/tools/*.ts` — Tool handlers, one file per domain
-- `src/tools/schemas/*.ts` — Zod input schemas per tool
-- `src/tools/utils.ts` — `safeToolCall()` error wrapper, `textResult()` helper
+- `packages/core/src/operations/*.ts` — Domain operations, one file per domain, return raw TDX data (`Promise<unknown>`)
+- `packages/core/src/schemas/*.ts` — Zod input schemas per operation
+- `src/tools/utils.ts` — `safeToolCall()` error wrapper, `textResult()` helper (MCP-only, stays in `src/`)
 
 ## Key design decisions
 
@@ -46,9 +46,9 @@ The repo is being initialized as an npm monorepo, but the MCP implementation has
 - **No rate limit headers.** TDX doesn't return `X-RateLimit-*` headers. Limits are tracked client-side with per-endpoint configs in `rate-limiter.ts`.
 - **No cursor pagination.** TDX search uses `MaxResults`/`ReturnCount` in request body, not page indexes. Use date ranges for windowing.
 - **PATCH uses JSON Patch (RFC 6902)**, not JSON Merge Patch. The `ticketUpdateInputSchema` accepts a `patches` array with `op`/`path`/`value`.
-- **Error sanitization.** `safeToolCall()` catches `TdxApiError` and returns only the HTTP status — raw error bodies are never exposed to MCP consumers.
+- **Error sanitization.** `safeToolCall()` catches `TdxApiError` and returns only the HTTP status — raw error bodies are never exposed to MCP consumers. It wraps `textResult(await operation(args))` in `src/server.ts`; operations themselves return raw data and contain no MCP concerns.
 - **UID fields use `.uuid()` validation** to prevent path injection via string-typed IDs.
-- **Workspace scaffold only.** Until the follow-on extraction issues are implemented, root `src/` remains the source of truth for the working MCP server.
+- **Workspace scaffold in progress.** Domain operations and schemas now live in `@tdx/core`; root `src/` remains the source of truth for the working MCP server until it is rebuilt as a thin package wrapper.
 - **TypeScript references.** Keep package-level `tsconfig.json` files wired through the root solution config; `packages/cli` references `packages/core`.
 
 ## Testing
@@ -56,14 +56,19 @@ The repo is being initialized as an npm monorepo, but the MCP implementation has
 Tests use Vitest. Vitest isolates module mocks per file natively, so unit and QA tests run together in a single `vitest run`.
 
 - `tests/` — Unit tests, mirror `src/` structure
+- `tests/operations/` — `@tdx/core` domain operation + schema tests (assert raw response shape)
 - `tests/qa/` — End-to-end MCP server tests with in-memory transport
 - `tests/fixtures/` — Realistic TDX API response data
 - `tests/setup.ts` — Registers custom `toBeArray()`/`toBeString()` matchers
 
-When mocking config in tests, mock `getConfig` as a function:
+When unit-testing core operations, mock the core API client and config modules the operation imports, and assert on the raw return value:
 
 ```ts
-vi.mock("../../src/config.ts", () => ({
+vi.mock("../../packages/core/src/api/client.ts", () => ({
+  tdxRequest: mockTdxRequest,
+}));
+
+vi.mock("../../packages/core/src/config.ts", () => ({
   getConfig: () => ({
     TDX_BASE_URL: "https://tdx.example.com/TDWebApi/api",
     TDX_BEID: "test-beid",
@@ -74,6 +79,8 @@ vi.mock("../../src/config.ts", () => ({
   }),
 }));
 ```
+
+The `tests/server.test.ts` integration test partially mocks `@tdx/core` via `vi.importActual`, keeping the real operations and schemas while stubbing `getConfig`/`tdxRequest`/auth.
 
 ## TDX API reference
 

@@ -1,41 +1,43 @@
-import type { CallToolResult } from "@modelcontextprotocol/server";
-import { getConfig, tdxRequest } from "@tdx/core";
 import type { z } from "zod";
-import type {
+import { tdxRequest } from "../api/client.js";
+import { getConfig } from "../config.js";
+import {
 	ticketCreateInputSchema,
 	ticketFeedGetInputSchema,
 	ticketFeedPostInputSchema,
 	ticketGetInputSchema,
 	ticketSearchInputSchema,
 	ticketUpdateInputSchema,
-} from "./schemas/tickets.js";
-import { textResult } from "./utils.js";
+} from "../schemas/tickets.js";
 
 const appId = () => getConfig().TDX_TICKETING_APP_ID;
 
 export async function ticketsSearch(
-	args: z.infer<typeof ticketSearchInputSchema>,
-): Promise<CallToolResult> {
+	args: z.input<typeof ticketSearchInputSchema>,
+): Promise<unknown> {
+	const input = ticketSearchInputSchema.parse(args);
 	const { data } = await tdxRequest({
 		method: "POST",
 		path: `/${appId()}/tickets/search`,
-		body: args,
+		body: input,
 	});
-	return textResult(data);
+	return data;
 }
 
 export async function ticketsGet(
-	args: z.infer<typeof ticketGetInputSchema>,
-): Promise<CallToolResult> {
+	args: z.input<typeof ticketGetInputSchema>,
+): Promise<unknown> {
+	const input = ticketGetInputSchema.parse(args);
 	const { data } = await tdxRequest({
-		path: `/${appId()}/tickets/${args.id}`,
+		path: `/${appId()}/tickets/${input.id}`,
 	});
-	return textResult(data);
+	return data;
 }
 
 export async function ticketsCreate(
-	args: z.infer<typeof ticketCreateInputSchema>,
-): Promise<CallToolResult> {
+	args: z.input<typeof ticketCreateInputSchema>,
+): Promise<unknown> {
+	const input = ticketCreateInputSchema.parse(args);
 	const {
 		NotifyRequestor,
 		NotifyResponsible,
@@ -43,7 +45,7 @@ export async function ticketsCreate(
 		AllowRequestorCreation,
 		applyDefaults,
 		...body
-	} = args;
+	} = input;
 	const { data } = await tdxRequest({
 		method: "POST",
 		path: `/${appId()}/tickets`,
@@ -56,13 +58,14 @@ export async function ticketsCreate(
 			applyDefaults: String(applyDefaults),
 		},
 	});
-	return textResult(data);
+	return data;
 }
 
 export async function ticketsUpdate(
-	args: z.infer<typeof ticketUpdateInputSchema>,
-): Promise<CallToolResult> {
-	const { id, patches, notifyNewResponsible } = args;
+	args: z.input<typeof ticketUpdateInputSchema>,
+): Promise<unknown> {
+	const { id, patches, notifyNewResponsible } =
+		ticketUpdateInputSchema.parse(args);
 	const { data } = await tdxRequest({
 		method: "PATCH",
 		path: `/${appId()}/tickets/${id}`,
@@ -71,26 +74,27 @@ export async function ticketsUpdate(
 			notifyNewResponsible: String(notifyNewResponsible),
 		},
 	});
-	return textResult(data);
+	return data;
 }
 
 export async function ticketsFeedGet(
-	args: z.infer<typeof ticketFeedGetInputSchema>,
-): Promise<CallToolResult> {
+	args: z.input<typeof ticketFeedGetInputSchema>,
+): Promise<unknown> {
+	const input = ticketFeedGetInputSchema.parse(args);
 	const { data } = await tdxRequest({
-		path: `/${appId()}/tickets/${args.id}/feed`,
+		path: `/${appId()}/tickets/${input.id}/feed`,
 	});
-	return textResult(data);
+	return data;
 }
 
 export async function ticketsFeedPost(
-	args: z.infer<typeof ticketFeedPostInputSchema>,
-): Promise<CallToolResult> {
-	const { id, ...body } = args;
+	args: z.input<typeof ticketFeedPostInputSchema>,
+): Promise<unknown> {
+	const { id, ...body } = ticketFeedPostInputSchema.parse(args);
 	const { data } = await tdxRequest({
 		method: "POST",
 		path: `/${appId()}/tickets/${id}/feed`,
 		body,
 	});
-	return textResult(data);
+	return data;
 }

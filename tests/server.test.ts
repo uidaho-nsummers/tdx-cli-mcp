@@ -1,30 +1,27 @@
 import { describe, expect, test, vi } from "vitest";
 
-// Mock core - must be before any imports that trigger config/API loading
-vi.mock("@tdx/core", () => ({
-	getConfig: () => ({
-		TDX_BASE_URL: "https://tdx.example.com/TDWebApi/api",
-		TDX_BEID: "test-beid",
-		TDX_WEB_SERVICES_KEY: "test-key",
-		TDX_TICKETING_APP_ID: 42,
-		TDX_ASSET_APP_ID: 10,
-		TDX_KB_APP_ID: 20,
-	}),
-	tdxRequest: vi.fn(() =>
-		Promise.resolve({ data: {}, headers: new Headers() }),
-	),
-	TdxApiError: class TdxApiError extends Error {
-		constructor(
-			public status: number,
-			public statusText: string,
-			public body: string,
-		) {
-			super(`TDX API error ${status}: ${statusText}`);
-		}
-	},
-	getAuthToken: vi.fn(() => Promise.resolve("mock-token")),
-	clearAuthToken: vi.fn(),
-}));
+// Partial mock of core - keep real operations and schemas, stub the runtime
+// dependencies (config, API client, auth) so the server can register tools
+// without loading real config or hitting the network.
+vi.mock("@tdx/core", async () => {
+	const actual = await vi.importActual<typeof import("@tdx/core")>("@tdx/core");
+	return {
+		...actual,
+		getConfig: () => ({
+			TDX_BASE_URL: "https://tdx.example.com/TDWebApi/api",
+			TDX_BEID: "test-beid",
+			TDX_WEB_SERVICES_KEY: "test-key",
+			TDX_TICKETING_APP_ID: 42,
+			TDX_ASSET_APP_ID: 10,
+			TDX_KB_APP_ID: 20,
+		}),
+		tdxRequest: vi.fn(() =>
+			Promise.resolve({ data: {}, headers: new Headers() }),
+		),
+		getAuthToken: vi.fn(() => Promise.resolve("mock-token")),
+		clearAuthToken: vi.fn(),
+	};
+});
 
 describe("MCP server integration", () => {
 	describe("tool listing", () => {
